@@ -17,9 +17,14 @@ const verifyCredential = async (
   publishedCredential: Kilt.ICredential
 ) => {
   // Retrieve the on-chain attestation information about the credential.
-  const encodedOnChainAttestation = await api.query.attestation.attestations(publishedCredential.rootHash)
+  const encodedOnChainAttestation = await api.query.attestation.attestations(
+    publishedCredential.rootHash
+  )
 
-  const onChainAttestation = Kilt.Attestation.fromChain(encodedOnChainAttestation, publishedCredential.rootHash)
+  const onChainAttestation = Kilt.Attestation.fromChain(
+    encodedOnChainAttestation,
+    publishedCredential.rootHash
+  )
   if (onChainAttestation.revoked) {
     throw 'Credential revoked.'
   }
@@ -30,7 +35,9 @@ const verifyCredential = async (
 async function main() {
   const api = await Kilt.connect(endpointAddress)
   const encodedDidForWeb3Name = await api.query.web3Names.owner(web3Name)
-  const { owner: didForWeb3Name } = Kilt.Did.Web3Names.web3NameOwnerFromChain(encodedDidForWeb3Name)
+  const { owner: didForWeb3Name } = Kilt.Did.Web3Names.web3NameOwnerFromChain(
+    encodedDidForWeb3Name
+  )
   console.log(`DID for "${web3Name}": ${didForWeb3Name}`)
 
   const resolutionResult = await Kilt.Did.resolve(didForWeb3Name)
@@ -46,13 +53,16 @@ async function main() {
   }
 
   // Filter the endpoints by their type.
-  const didEndpoints = document.service?.filter(({ type }) => type.includes(endpointType))
+  const didEndpoints = document.service?.filter(({ type }) =>
+    type.includes(endpointType)
+  )
 
   console.log(`Endpoints of type "${endpointType}" for the retrieved DID:`)
   console.log(JSON.stringify(didEndpoints, null, 2))
 
   // For demonstration, only the first endpoint and its first URL are considered.
-  const firstCredentialCollectionEndpointUrl = didEndpoints?.[0].serviceEndpoint[0]
+  const firstCredentialCollectionEndpointUrl =
+    didEndpoints?.[0].serviceEndpoint[0]
   if (!firstCredentialCollectionEndpointUrl) {
     console.log(`The DID has no service endpoints of type "${endpointType}".`)
   }
@@ -61,7 +71,10 @@ async function main() {
   // The case where the result is not a JSON should be properly handled in production settings.
   const credentialCollection = await fetch(
     firstCredentialCollectionEndpointUrl as string
-  ).then((response) => response.data as Promise<Kilt.KiltPublishedCredentialCollectionV1>)
+  ).then(
+    (response) =>
+      response.data as Promise<Kilt.KiltPublishedCredentialCollectionV1>
+  )
   console.log(`Credential collection behind the endpoint:`)
   console.log(JSON.stringify(credentialCollection, null, 2))
 
@@ -83,7 +96,7 @@ async function main() {
   console.log('All retrieved credentials are valid! ✅!')
 }
 
-; (async () => {
+;(async () => {
   try {
     await main()
   } catch {

@@ -8,6 +8,7 @@
 
 ### Version History
 
+- **v1.2 - Sep.16 2022**: Remove signature from published credential
 - **v1.1 - May.25 2022**: Add support for optional credential metadata
 - **v1.0 - May.17 2022**: Initial spec publishing
 
