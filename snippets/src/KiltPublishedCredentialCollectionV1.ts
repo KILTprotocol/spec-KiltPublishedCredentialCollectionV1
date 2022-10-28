@@ -33,8 +33,12 @@ const verifyCredential = async (
 async function main() {
   const api = await Kilt.connect(endpointAddress)
 
-  const encodedDidForWeb3Name = await api.call.did.queryByWeb3Name(web3NameToSearch)
-  const { web3Name, document } = Kilt.Did.linkedInfoFromChain(encodedDidForWeb3Name)
+  const encodedDidForWeb3Name = await api.call.did.queryByWeb3Name(
+    web3NameToSearch
+  )
+  const { web3Name, document } = Kilt.Did.linkedInfoFromChain(
+    encodedDidForWeb3Name
+  )
   console.log(`DID for "${web3NameToSearch}": ${web3Name}`)
 
   // Filter the endpoints by their type.
@@ -42,14 +46,18 @@ async function main() {
     type.includes(Kilt.KiltPublishedCredentialCollectionV1Type)
   )
 
-  console.log(`Endpoints of type "${Kilt.KiltPublishedCredentialCollectionV1Type}" for the retrieved DID:`)
+  console.log(
+    `Endpoints of type "${Kilt.KiltPublishedCredentialCollectionV1Type}" for the retrieved DID:`
+  )
   console.log(JSON.stringify(didEndpoints, null, 2))
 
   // For demonstration, only the first endpoint and its first URL are considered.
   const firstCredentialCollectionEndpointUrl =
     didEndpoints?.[0].serviceEndpoint[0]
   if (!firstCredentialCollectionEndpointUrl) {
-    console.log(`The DID has no service endpoints of type "${Kilt.KiltPublishedCredentialCollectionV1Type}".`)
+    console.log(
+      `The DID has no service endpoints of type "${Kilt.KiltPublishedCredentialCollectionV1Type}".`
+    )
   }
 
   // Retrieve the credentials pointed at by the endpoint. Being an IPFS endpoint, the fetching can take an arbitrarily long time or even fail if the timeout is reached.
@@ -69,9 +77,7 @@ async function main() {
       await verifyCredential(api, credential)
 
       // Verify that the credential refers to the intended subject
-      if (
-        !Kilt.Did.isSameSubject(credential.claim.owner, document.uri)
-      ) {
+      if (!Kilt.Did.isSameSubject(credential.claim.owner, document.uri)) {
         throw 'One of the credentials refer to a different subject than expected.'
       }
     })
@@ -81,7 +87,7 @@ async function main() {
   console.log('All retrieved credentials are valid! ✅!')
 }
 
-; (async () => {
+;(async () => {
   try {
     await main()
   } catch {
