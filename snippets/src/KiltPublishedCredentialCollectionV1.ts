@@ -8,9 +8,7 @@ import * as Kilt from '@kiltprotocol/sdk-js'
 
 // Peregrine testnet used for this example.
 const endpointAddress = 'wss://peregrine.kilt.io/parachain-public-ws'
-const web3Name = 'john_doe'
-// The type to filter the endpoints of the retrieved DID.
-const endpointType = 'KiltPublishedCredentialCollectionV1'
+const web3NameToSearch = 'john_doe'
 
 const verifyCredential = async (
   api: ApiPromise,
@@ -34,37 +32,24 @@ const verifyCredential = async (
 
 async function main() {
   const api = await Kilt.connect(endpointAddress)
-  const encodedDidForWeb3Name = await api.query.web3Names.owner(web3Name)
-  const { owner: didForWeb3Name } = Kilt.Did.Web3Names.web3NameOwnerFromChain(
-    encodedDidForWeb3Name
-  )
-  console.log(`DID for "${web3Name}": ${didForWeb3Name}`)
 
-  const resolutionResult = await Kilt.Did.resolve(didForWeb3Name)
-  if (!resolutionResult) {
-    throw 'The DID does not exist on the KILT blockchain.'
-  }
-
-  const { document } = resolutionResult
-  // If no details are returned but resolutionResult is not null, the DID has been deleted.
-  // This information is present in `resolutionResult.metadata.deactivated`.
-  if (!document) {
-    throw 'The DID has already been deleted.'
-  }
+  const encodedDidForWeb3Name = await api.call.did.queryByWeb3Name(web3NameToSearch)
+  const { web3Name, document } = Kilt.Did.linkedInfoFromChain(encodedDidForWeb3Name)
+  console.log(`DID for "${web3NameToSearch}": ${web3Name}`)
 
   // Filter the endpoints by their type.
   const didEndpoints = document.service?.filter(({ type }) =>
-    type.includes(endpointType)
+    type.includes(Kilt.KiltPublishedCredentialCollectionV1Type)
   )
 
-  console.log(`Endpoints of type "${endpointType}" for the retrieved DID:`)
+  console.log(`Endpoints of type "${Kilt.KiltPublishedCredentialCollectionV1Type}" for the retrieved DID:`)
   console.log(JSON.stringify(didEndpoints, null, 2))
 
   // For demonstration, only the first endpoint and its first URL are considered.
   const firstCredentialCollectionEndpointUrl =
     didEndpoints?.[0].serviceEndpoint[0]
   if (!firstCredentialCollectionEndpointUrl) {
-    console.log(`The DID has no service endpoints of type "${endpointType}".`)
+    console.log(`The DID has no service endpoints of type "${Kilt.KiltPublishedCredentialCollectionV1Type}".`)
   }
 
   // Retrieve the credentials pointed at by the endpoint. Being an IPFS endpoint, the fetching can take an arbitrarily long time or even fail if the timeout is reached.
@@ -85,7 +70,7 @@ async function main() {
 
       // Verify that the credential refers to the intended subject
       if (
-        !Kilt.Did.Utils.isSameSubject(credential.claim.owner, didForWeb3Name)
+        !Kilt.Did.isSameSubject(credential.claim.owner, document.uri)
       ) {
         throw 'One of the credentials refer to a different subject than expected.'
       }
@@ -96,7 +81,7 @@ async function main() {
   console.log('All retrieved credentials are valid! ✅!')
 }
 
-;(async () => {
+; (async () => {
   try {
     await main()
   } catch {
