@@ -1,5 +1,3 @@
-[![](.maintain/media/kilt-header.png)](https://kilt.io)
-
 # KiltPublishedCredentialCollectionV1
 
 ### Editors
